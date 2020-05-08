@@ -38,20 +38,24 @@ feedStream.setTemperatue(30.0, 'C')
 #Adding gas scrubber
 feedGasScrubber = separator(feedStream, "inlet gas scrubber")
 # Adding glycol dehydration module
-glycoldehydrationlmodule(feedGasScrubber.getGasOutSteam())
-
+glycolmodule = glycoldehydrationlmodule(feedGasScrubber.getGasOutSteam())
 
 
 #3. Adding transmitters and controllers
 feedTemperatureT = temperaturetransmitter(feedStream, name='TT2987', unit="C")
 feedTemperatureController = controller(leanGlycolFlowRateT, 'TC2987')
+feedStream.setController(feedTemperatureController)
 
 feedGasFlowRateT = flowtransmitter(feedStream, 'FT2878', unit='kg/hr')
 feedGasFlowRateController = controller(feedGasFlowRateT, 'FC2878')
+feedStream.setController(feedGasFlowRateController)
 
 leanGlycolFlowRateT = flowtransmitter(leanGlycolStream, 'FT9878', unit='kg/hr')
 leanGlycolFlowRateController = controller(leanGlycolFlowRateT, 'FC9879')
+leanGLycolFeedStream.setController(leanGlycolFlowRateController)
 
+
+#Adding transmitters
 reboilerDutuy = energytransmitter(reboiler, 'QE9878', unit='kW')
 
 
@@ -67,5 +71,12 @@ runProcess()
 resultdataframe = getProcess().getResultdf()
 
 #loop back to 4.....
+
+
+
+
+
+#7.future - look forward
+runtransient()
 
 

@@ -21,7 +21,7 @@ import neqsim.processSimulation.processSystem.ProcessSystem;
 import neqsim.thermodynamicOperations.flashOps.SaturateWithWater;
 import neqsim.processSimulation.processEquipment.separator.Separator;
 
-public class TEGdehydrationProcessDistillation {
+public class TEGprocess{
 
 	public static void main(String[] args) {
 

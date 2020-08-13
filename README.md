@@ -4,4 +4,4 @@ The neqsimprocess project is using neqsim as basis for developing process simula
 
 
 # Requirements
-THe neqsim python package needs to be installed to run the examples in Python. NeqSim is installed using pip install neqsim.
+The neqsim python package needs to be installed to run the examples in Python. NeqSim is installed using pip install neqsim.

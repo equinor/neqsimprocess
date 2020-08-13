@@ -10,7 +10,7 @@ from neqsim.process import openprocess
 
 # Read dehydration process from file
 #offshorePro = openprocess('c:/temp/offshorePro.neqsim')
-TEGprocess = openprocess('c:/temp/TEGprocessFullFullRecirc.neqsim')
+TEGprocess = openprocess('../src/neqsimprocess/resources/TEGprocess.neqsim')
 #TEGprocess.setFluid(TEGprocess.getUnit("dry feed gas").getFluid(), offshorePro.getUnit("richgas").getFluid())
 
 

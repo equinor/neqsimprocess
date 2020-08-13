@@ -1,4 +1,4 @@
-# NeqSim for processsimulation and condition monitoring
+# NeqSim for process simulation and condition monitoring
 The neqsimprocess project is using neqsim as basis for developing process simulation models. Examples of use of the process models is given in the example directory.
 
 Java files for creation of the processes are given in the src directory as well as generated neqsim process binary files *.neqsim stored in the src/resource directory.

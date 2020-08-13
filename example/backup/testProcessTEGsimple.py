@@ -9,26 +9,22 @@ from neqsim.process import openprocess
 
 
 # Read dehydration process from file
-#offshorePro = openprocess('c:/temp/offshorePro.neqsim')
-TEGprocess = openprocess('c:/temp/TEGprocessFullFullRecirc.neqsim')
-#TEGprocess.setFluid(TEGprocess.getUnit("dry feed gas").getFluid(), offshorePro.getUnit("richgas").getFluid())
+TEGprocess = openprocess('c:/temp/TEGprocessSimple.neqsim')
 
 
 # Set input parameters
 TEGprocess.getUnit("dry feed gas").setTemperature(30.2, 'C')
 TEGprocess.getUnit("dry feed gas").setPressure(52.21, "bara")
-TEGprocess.getUnit("lean TEG to absorber").setFlowRate(6100.0, "kg/hr")
+TEGprocess.getUnit("lean TEG to absorber").setFlowRate(6.1 * 1100.0, "kg/hr")
 TEGprocess.getUnit("lean TEG cooler").setOutTemperature(273.15 + 44.85)
 TEGprocess.getUnit("rich TEG preheater").setOutTemperature(273.15 + 38.5)
 TEGprocess.getUnit("Rich TEG HP flash valve").setOutletPressure(4.9)
 TEGprocess.getUnit("rich TEG heater HP").setOutTemperature(273.15 + 62.0)
 TEGprocess.getUnit("LP rich glycol heater").setOutTemperature(273.15 + 139.0)
 TEGprocess.getUnit("LP rich glycol heater").setOutPressure(1.23)
-TEGprocess.getUnit("TEG regeneration column").getReboiler().setOutTemperature(273.15 + 206.6)
 TEGprocess.getUnit("stripGas").setPressure(1.23, "bara")
 TEGprocess.getUnit("stripGas").setFlowRate(61.88, "kg/hr")
 TEGprocess.getUnit("stripGas").setTemperature(80.0, 'C')
-TEGprocess.getUnit("lean TEG resycle").getOutletStream().setFlowRate(5500.0, "kg/hr")
 
 #Run the process calculations
 TEGprocess.run()

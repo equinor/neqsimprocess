@@ -19,23 +19,25 @@ TEGprocess = openprocess('c:/temp//TEGprocess.neqsim')
 TEGprocess.getUnit("dry feed gas").setFlowRate(11.23, 'MSm3/day')
 TEGprocess.getUnit("dry feed gas").setTemperature(30.4, 'C')
 TEGprocess.getUnit("dry feed gas").setPressure(52.21, "bara")
-TEGprocess.getUnit("lean TEG to absorber").setFlowRate(6710.0, "kg/hr")
-TEGprocess.getUnit("lean TEG cooler").setOutTemperature(273.15 + 44.85)
-TEGprocess.getUnit("rich TEG preheater").setOutTemperature(273.15 + 37.54139125)
+TEGprocess.getUnit("lean TEG to absorber").setFlowRate(6862.5, "kg/hr")
+TEGprocess.getUnit("rich TEG preheater").setOutTemperature(273.15 + 38.025)
+TEGprocess.getUnit("TEG absorber").setNumberOfStages(5)
+TEGprocess.getUnit("TEG absorber").setStageEfficiency(0.55)
 TEGprocess.getUnit("Rich TEG HP flash valve").setOutletPressure(4.9)
 TEGprocess.getUnit("rich TEG heater HP").setOutTemperature(273.15 + 62.0)
 TEGprocess.getUnit("LP rich glycol heater").setOutTemperature(273.15 + 139.0)
 TEGprocess.getUnit("LP rich glycol heater").setOutPressure(1.23)
 TEGprocess.getUnit("TEG regeneration column").getReboiler().setOutTemperature(273.15 + 206.6)
-TEGprocess.getUnit("TEG regeneration column").setTopPressure(1.2)
 TEGprocess.getUnit("TEG regeneration column").setBottomPressure(1.23)
+TEGprocess.getUnit("TEG regeneration column").setTopPressure(1.20)
 TEGprocess.getUnit("stripGas").setPressure(1.23, "bara")
 TEGprocess.getUnit("stripGas").setFlowRate(90.0, "Sm3/hr")
 TEGprocess.getUnit("stripGas").setTemperature(80.0, 'C')
-TEGprocess.getUnit("lean TEG resycle").getOutletStream().setFlowRate(6710.0, "kg/hr")
-TEGprocess.getUnit("hot lean TEG pump").setOutletPressure(20.0)       
-TEGprocess.getUnit("lean TEG cooler").setOutTemperature(44.85)                            
-TEGprocess.getUnit("lean TEG HP pump").setOutletPressure(51.2)                          
+TEGprocess.getUnit("hot lean TEG pump").setOutletPressure(20.0)    
+TEGprocess.getUnit("hot lean TEG pump").setIsentropicEfficiency(0.75)
+TEGprocess.getUnit("lean TEG cooler").setOutTemperature(273.15+43.0)                            
+TEGprocess.getUnit("lean TEG HP pump").setOutletPressure(52.21)                          
+TEGprocess.getUnit("lean TEG HP pump").setIsentropicEfficiency(0.75)
 
 #Run the process calculations
 tic = time.perf_counter()
@@ -65,8 +67,10 @@ pump1DutykW = TEGprocess.getUnit("hot lean TEG pump").getEnergy()/1.0e3
 pump2DutykW = TEGprocess.getUnit("lean TEG HP pump").getEnergy()/1.0e3
 flashGasRate = TEGprocess.getUnit("gas from degasing separator").getFlowRate("kg/hr")
 gasToFLareRatekghr = TEGprocess.getUnit("gas to flare").getFlowRate("kg/hr")
-waterToTreatment = TEGprocess.getUnit("water to treatment").getFlowRate("kg/hr")
 stripGasRatekghr = TEGprocess.getUnit("stripGas").getFlowRate("kg/hr")
+waterToTreatment = TEGprocess.getUnit("water to treatment").getFlowRate("kg/hr")
+TEGinwatertoTreatment = TEGprocess.getUnit("water to treatment").getFluid().getPhase("aqueous").getWtFrac("TEG")*100.0
+
 
 
 

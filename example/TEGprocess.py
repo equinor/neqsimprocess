@@ -11,7 +11,7 @@ import time
 # Read dehydration process from file
 #offshorePro = openprocess('c:/temp/offshorePro.neqsim')
 #TEGprocess = openprocess('../lib/TEGprocess.neqsim')
-TEGprocess = openprocess('c:/temp//TEGprocess.neqsim')
+#TEGprocess = openprocess('c:/temp//TEGprocess.neqsim')
 #TEGprocess.setFluid(TEGprocess.getUnit("dry feed gas").getFluid(), offshorePro.getUnit("richgas").getFluid())
 
 
@@ -20,7 +20,6 @@ TEGprocess.getUnit("dry feed gas").setFlowRate(11.23, 'MSm3/day')
 TEGprocess.getUnit("dry feed gas").setTemperature(30.4, 'C')
 TEGprocess.getUnit("dry feed gas").setPressure(52.21, "bara")
 TEGprocess.getUnit("lean TEG to absorber").setFlowRate(6862.5, "kg/hr")
-TEGprocess.getUnit("rich TEG preheater").setOutTemperature(273.15 + 37.5)
 TEGprocess.getUnit("Rich TEG HP flash valve").setOutletPressure(4.9)
 TEGprocess.getUnit("rich TEG heater HP").setOutTemperature(273.15 + 62.0)
 TEGprocess.getUnit("LP rich glycol heater").setOutTemperature(273.15 + 139.0)
@@ -77,6 +76,8 @@ waterToTreatment = TEGprocess.getUnit("water to treatment").getFlowRate("kg/hr")
 TEGinwatertoTreatmentwtprecent = TEGprocess.getUnit("water to treatment").getFluid().getPhase("aqueous").getWtFrac("TEG")*100.0
 flowFromReboiler = TEGprocess.getUnit("TEG regeneration column").getReboiler().getLiquidOutStream().getFlowRate("kg/hr")
 richTEGpreheaterDutykW = TEGprocess.getUnit("rich TEG preheater").getDuty()/1000.0
+richTEGpreheaterTemperature = TEGprocess.getUnit("rich TEG preheater").getOutStream().getTemperature("C")
+		
 
 
 

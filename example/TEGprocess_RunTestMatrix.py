@@ -36,7 +36,7 @@ def calcCase(caseNumber):
   TEGprocess.getUnit("dry feed gas").setTemperature(float(df.loc[caseNumber]['dry feed gas']), 'C')
   TEGprocess.getUnit("dry feed gas").setPressure(float(df.loc[caseNumber]['dry feed gas.1']), "bara")
   TEGprocess.getUnit("lean TEG to absorber").setFlowRate(float(df.loc[caseNumber]['lean TEG to absorber']), "kg/hr")
-  TEGprocess.getUnit("rich TEG preheater").setOutTemperature(273.15 + 37.5)#float(df.loc[caseNumber]['rich TEG preheater']))
+  #TEGprocess.getUnit("rich TEG preheater").setOutTemperature(273.15 + 37.5)#float(df.loc[caseNumber]['rich TEG preheater']))
   #TEGprocess.getUnit("TEG absorber").setNumberOfStages(5)
   #TEGprocess.getUnit("TEG absorber").setStageEfficiency(0.485)
   TEGprocess.getUnit("Rich TEG HP flash valve").setOutletPressure(float(df.loc[caseNumber]['Rich TEG HP flash valve']))

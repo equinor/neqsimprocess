@@ -1,4 +1,4 @@
-e# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 Created on Wed Jul 15 11:07:21 2020
 
@@ -11,7 +11,7 @@ import time
 # Read dehydration process from file
 #offshorePro = openprocess('c:/temp/offshorePro.neqsim')
 #TEGprocess = openprocess('../lib/TEGprocess.neqsim')
-TEGprocess = openprocess('c:/temp//TEGprocessHeatEx.neqsim')
+TEGprocess = openprocess('c:/temp//TEGprocessHX.neqsim')
 #TEGprocess.setFluid(TEGprocess.getUnit("dry feed gas").getFluid(), offshorePro.getUnit("richgas").getFluid())
 
 

@@ -12,7 +12,7 @@ import time
 #offshorePro = openprocess('c:/temp/offshorePro.neqsim')
 #TEGprocess = openprocess('../lib/TEGprocess.neqsim')
 TEGprocess = openprocess('c:/temp//TEGprocessHX.neqsim')
-#TEGprocess.setFluid(TEGprocess.getUnit("dry feed gas").getFluid(), offshorePro.getUnit("richgas").getFluid())
+#TEGprocess.setFluid(TEGprocess.getUnit("dry feed gas").getFluid(), offshorePro.getUnit("rich gas").getFluid())
 
 
 # Set input parameters

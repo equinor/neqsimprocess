@@ -9,10 +9,10 @@ from neqsim.process import openprocess
 import time
 
 # Read dehydration process from file
-#offshorePro = openprocess('c:/temp/offshorePro.neqsim')
+offshorePro = openprocess('c:/temp/offshorePro.neqsim')
 #TEGprocess = openprocess('../lib/TEGprocess.neqsim')
-#TEGprocess = openprocess('c:/temp//TEGprocess.neqsim')
-#TEGprocess.setFluid(TEGprocess.getUnit("dry feed gas").getFluid(), offshorePro.getUnit("richgas").getFluid())
+TEGprocess = openprocess('c:/temp//TEGprocess.neqsim')
+TEGprocess.setFluid(TEGprocess.getUnit("dry feed gas").getFluid(), offshorePro.getUnit("rich gas").getFluid())
 
 
 # Set input parameters

@@ -37,7 +37,7 @@ GasOilProcess.getUnit("oil MP to LP valve").setOutletPressure(1.8, "bara")
 GasOilProcess.getUnit("Water HP to LP valve").setOutletPressure(1.01325, "bara")
 GasOilProcess.getUnit("dew point scrubber cooler2").setOutTemperature(33.0, "C")
 GasOilProcess.getUnit("2nd stage cooler").setOutTemperature(33.0, "C")
-GasOilProcess.getUnit("1st stage gas cooler").setOutTemperature(33.0, "C")
+GasOilProcess.getUnit("1st stage gas heat exchanger").setOutTemperature(33.0, "C")
 GasOilProcess.getUnit("1st stage recompressor").setIsentropicEfficiency(0.75)
 GasOilProcess.getUnit("2nd stage recompressor").setIsentropicEfficiency(0.75)
 
@@ -47,7 +47,7 @@ GasOilProcess.run()
 toc = time.perf_counter()
 print(f"Simulation run in {toc - tic:0.4f} seconds")
 
-
+GasOilProcess.get
 
 #Read results
 GasLiqidRatio = GasOilProcess.getUnit("rich gas").getFluid().getFlowRate("Sm3/hr")/GasOilProcess.getUnit("stable oil").getFluid().getFlowRate("m3/hr")
@@ -63,6 +63,17 @@ resycleFLowDewPointScrubber = GasOilProcess.getUnit("dew point control scrubber"
 TVPofexportoil = GasOilProcess.getUnit("stable oil").TVP(30.0, "C")
 CCB_exportgas = GasOilProcess.getUnit("rich gas").CCB("bara")
 CCT_exportgas = GasOilProcess.getUnit("rich gas").CCT("C")
+flowRateFirstStage = GasOilProcess.getUnit("1st stage recompressor").getOutStream().getFluid().getFlowRate("MSm3/day")
+flowRateSecondStage = GasOilProcess.getUnit("2nd stage recompressor").getOutStream().getFluid().getFlowRate("MSm3/day")
+
+EntropyProductionJperK = GasOilProcess.getEntropyProduction("J/K")
+lostWorkCompressor1 = GasOilProcess.getUnit("1st stage recompressor").getEntropyProduction("J/K")*298.15/1.0e6 
+lostWork = EntropyProductionJperK*298.15/1.0e6
+
+coolingDuty = GasOilProcess.getCoolerDuty("J/sec")/1.0e6
+heaterDuty = GasOilProcess.getHeaterDuty("J/sec")/1.0e6
+powerInput = GasOilProcess.getPower("W")/1.0e6
+
 #GasOilProcess.getUnit("well stream").getFluid().display()
 #GasOilProcess.getUnit("rich gas").getFluid().display()
 #GasOilProcess.getUnit("water to treatment").getFluid().display()

@@ -47,7 +47,6 @@ GasOilProcess.run()
 toc = time.perf_counter()
 print(f"Simulation run in {toc - tic:0.4f} seconds")
 
-GasOilProcess.get
 
 #Read results
 GasLiqidRatio = GasOilProcess.getUnit("rich gas").getFluid().getFlowRate("Sm3/hr")/GasOilProcess.getUnit("stable oil").getFluid().getFlowRate("m3/hr")

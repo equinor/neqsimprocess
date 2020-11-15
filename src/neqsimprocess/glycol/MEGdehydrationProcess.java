@@ -147,7 +147,7 @@ public class OnshoreMEGprocess {
 		coolerRegenGas.setOutTemperature(273.15 + 20.0);
 
 		Separator sepregenGas = new Separator(coolerRegenGas.getOutStream());
-		sepregenGas.setName("overhead condeser scrubber");
+		sepregenGas.setName("overhead condenser scrubber");
 
 		Stream gasToFlare = new Stream(sepregenGas.getGasOutStream());
 		gasToFlare.setName("gas to flare from regenerator");

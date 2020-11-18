@@ -40,7 +40,7 @@ def calcCase(caseNumber):
   TEGprocess.getUnit("Rich TEG LP flash valve").setOutletPressure(float(df.loc[caseNumber]['Rich TEG LP flash valve'])) 
   TEGprocess.getUnit("TEG regeneration column").getReboiler().setOutTemperature(273.15 + float(df.loc[caseNumber]['TEG regeneration column']))
   TEGprocess.getUnit("TEG regeneration column").setBottomPressure(float(df.loc[caseNumber]['Rich TEG LP flash valve']))
-  TEGprocess.getUnit("TEG regeneration column").setTopPressure(float(df.loc[caseNumber]['Rich TEG LP flash valve']))
+  TEGprocess.getUnit("TEG regeneration column").setTopPressure(1.0)
   TEGprocess.getUnit("TEG regeneration column").getCondenser().setOutTemperature(float(df.loc[caseNumber]['Condenser temp.']) + 273.15)
   TEGprocess.getUnit("regen gas cooler").setOutTemperature(273.15+37.5)
   TEGprocess.getUnit("stripGas").setPressure(float(df.loc[caseNumber]['stripGas.2']), "bara")
@@ -78,7 +78,7 @@ def reportCase(caseNumber):
   condenserdutykW = TEGprocess.getUnit("TEG regeneration column").getCondenser().getDuty()/1.0e3
   condensertemperature= TEGprocess.getUnit("TEG regeneration column").getCondenser().getTemperature()-273.15
   reboilertemperature= TEGprocess.getUnit("TEG regeneration column").getReboiler().getTemperature()-273.15
-  TEGmakeupkghr = TEGprocess.getUnit("makeup calculator").getOutputVariable().getFluid().getFlowRate("kg/hr")
+  TEGmakeupkghr = TEGprocess.getUnit("TEG makeup calculator").getOutputVariable().getFluid().getFlowRate("kg/hr")
   TEGmakeupkgMSm3 = TEGmakeupkghr/TEGprocess.getUnit("dry feed gas").getFlowRate("Sm3/day")/1.0e6*24
   leanTEGflow = TEGprocess.getUnit("TEG absorber").getSolventInStream().getFlowRate("kg/hr")
   richTEGflow = TEGprocess.getUnit("TEG absorber").getSolventOutStream().getFlowRate("kg/hr")

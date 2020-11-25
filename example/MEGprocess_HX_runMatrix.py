@@ -90,12 +90,14 @@ def reportCase(caseNumber):
   makeUpMEG = MEGprocess.getUnit("makeup MEG").getFlowRate("kg/hr")
   gasrateFromFlashDrum = MEGprocess.getUnit("gas from flash drum").getFlowRate("kg/hr")
   makeupMEGrate = MEGprocess.getUnit("makeup MEG").getFlowRate("kg/hr")
+  JTvalvetemp = MEGprocess.getUnit("JT valve").getOutStream().getTemperature('C')
   return [wetGasRatekghr,waterInWetGasppm,waterInDryGasppm,compressor1Power, compressor2Power, intercoolerDuty, gasTemperatureFromGasGasHX1,gasTemperatureFromGasGasHX2,
-          leanMEGwtpr, richMEGwtpr, reboilerDuty, condenserDuty, hotLeanMEGpumppower,leanMEGHPpumppower, makeUpMEG, gasrateFromFlashDrum]
+          leanMEGwtpr, richMEGwtpr, reboilerDuty, condenserDuty, hotLeanMEGpumppower,leanMEGHPpumppower, makeUpMEG, gasrateFromFlashDrum, JTvalvetemp]
 
 df2 = pd.DataFrame(columns=['Wet gas rate[kg/hr]','Water in wet gas[ppm (mol)]','Water in dry gas[ppm (mol)]','Compressor 1st stage power [kW]', 'Compressor 2nd stage power [kW]', 
                             'Intercooler duty [kW]', 'Gas-gas HX1 outlet temperature [C]', 'Gas-gas HX2 outlet temperature [C]', 'Lean MEG wt%', 'Rich MEG wt%', 'Reboiler duty [kW]', 
-                            'Condenser duty [kW]','Hot lean MEG pump power [kW]', 'Lean MEG HP pump power [kW]', 'Make-up MEG rate [kg/h]', 'Gas from flash drum rate [kg/h]'], index=df.index)
+                            'Condenser duty [kW]','Hot lean MEG pump power [kW]', 'Lean MEG HP pump power [kW]', 'Make-up MEG rate [kg/h]', 'Gas from flash drum rate [kg/h]', 
+                            'Temperature from JT valve [C]'], index=df.index)
 
 
 for caseNumber in range(1,2):

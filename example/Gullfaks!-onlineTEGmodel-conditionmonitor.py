@@ -19,6 +19,7 @@ import numpy as np
 import time
 from datetime import datetime
 import numpy
+import sys
 
 #d = tagreader.IMSClient('GFA','Aspen')
 #d.connect() 
@@ -33,9 +34,9 @@ import numpy
 #dfres = d.read(tags,'15-Jan-20 13:00:00','01-May-21 13:11:00',timestep) 
 #dfres.to_csv('c:/temp/TEGprocessGFAdata.csv')
 
-dfres = pd.read_csv("TEGprocessGFAdatawithHXdata.csv")
+dfres = pd.read_csv("c:/temp/TEGprocessGFAdatawHX22.csv")
 
-TEGprocess = openprocess('../lib/TEGprocessGFA.neqsim')
+TEGprocess = openprocess('c:/temp/TEGprocessGFA.neqsim')
 
 dataOut = []
 dataRes = []
@@ -51,15 +52,29 @@ for index, data in dfres.iterrows():
     TEGprocess.getUnit("Rich TEG HP flash valve").setOutletPressure(data[8], 'barg')
     TEGprocess.getUnit("Rich TEG LP flash valve").setOutletPressure(data[9], 'barg')
     TEGprocess.getUnit("filters").setDeltaP(data[15], "bara");
-    TEGprocess.getUnit("TEG regeneration column").getCondenser().setOutTemperature(103.0+273.15)
+    TEGprocess.getUnit("TEG regeneration column").getCondenser().setOutTemperature(85.6+273.15)
     TEGprocess.getUnit("TEG regeneration column").getReboiler().setOutTemperature(data[11]+273.15)
     TEGprocess.getUnit("TEG regeneration column").setBottomPressure(data[9]+1.01325)
-    TEGprocess.getUnit("TEG regeneration column").setTopPressure(1.01325)
+    TEGprocess.getUnit("TEG regeneration column").setTopPressure(data[9]+1.01325)
     TEGprocess.getUnit("TEG buffer tank").setOutTemperature(data[13]+273.15)
     TEGprocess.getUnit("hot lean TEG pump").setOutletPressure(data[14]+1.01325)
+    TEGprocess.getUnit("rich TEG heat exchanger 1").setUAvalue(2900.0)
+    TEGprocess.getUnit("rich TEG heat exchanger 2").setUAvalue(7300.0)
+    if(data[1]<0.01):
+        dataOut.append([np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan])
+        continue
     tic = time.perf_counter()
-    neqsimthread = TEGprocess.runAsThread()
-    neqsimthread.join()
+    try:
+        neqsimthread = TEGprocess.runAsThread()
+        neqsimthread.join()
+    except KeyboardInterrupt:
+        print('Interrupted')
+        sys.exit(0)    
+    except:
+        print('error ', index)
+        dataOut.append([np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan])
+        continue
+    
     toc = time.perf_counter()
     print('time ', (toc-tic))
     
@@ -88,8 +103,10 @@ for index, data in dfres.iterrows():
     eff1 = conditionMonitor.getProcess().getUnit("rich TEG heat exchanger 2").getThermalEffectiveness()
     eff2 = TEGprocess.getUnit("rich TEG heat exchanger 2").getThermalEffectiveness()
     relativeEfficiency = eff1/eff2
+    dataloc.append(eff1)
+    dataloc.append(eff2)
     dataloc.append(relativeEfficiency)
-    print('effHX2 ', eff1, ' eff2 ', eff2, ' releff ', relativeEfficiency)
+    print('effHX2_real ', eff1, ' effHX2_ref ', eff2, ' releffHX2 ', relativeEfficiency)
     
     leanTEGtempIntoHX2 = data[13]  # GFA.24-TIT__396_.PV   surge drup =
     leanTEGoutHX2 = TEGprocess.getUnit("rich TEG heat exchanger 2").getOutStream(1).getTemperature("C")   # TI374
@@ -111,9 +128,11 @@ for index, data in dfres.iterrows():
     eff11 = conditionMonitor.getProcess().getUnit("rich TEG heat exchanger 1").getThermalEffectiveness()
     eff21 = TEGprocess.getUnit("rich TEG heat exchanger 1").getThermalEffectiveness()
     relativeEfficiency1 = eff11/eff21
+    dataloc.append(eff11)
+    dataloc.append(eff21)
     dataloc.append(relativeEfficiency1)
     
-    print('effHX2 ', eff11, ' eff2 ', eff21, ' releff ', relativeEfficiency1)
+    print('effHX1_real ', eff11, ' effHX1_ref ', eff21, ' releffHX1 ', relativeEfficiency1)
     
     leanTEGtempIntoHX1 = TEGprocess.getUnit("rich TEG preheater").getOutStream().getTemperature("C")
     leanTEGoutHX1 = TEGprocess.getUnit("rich TEG heat exchanger 1").getOutStream(0).getTemperature("C")
@@ -137,4 +156,4 @@ for index, data in dfres.iterrows():
 #plt.show()
 
 a = numpy.asarray(dataOut)
-numpy.savetxt("c:/temp/dataResults3.csv", a, delimiter=",")
+numpy.savetxt("c:/temp/dataResults6.csv", a, delimiter=",")

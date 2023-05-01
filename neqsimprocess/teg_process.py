@@ -1,5 +1,8 @@
 """
 TEG process module
+...
+The module is sed for establishing a TEG process, 
+setting input parameters and reading output from a simulation
 """
 from functools import cache
 from neqsim import jNeqSim
@@ -10,7 +13,7 @@ from pydantic import Field
 @dataclass
 class ProcessInput():
     """
-    A class to represent a TEG dehydration process.
+    A class to define input parameters for the TEG dehydration process.
 
     ...
 
@@ -20,11 +23,6 @@ class ProcessInput():
         the flow rate of the feed gas to the dehdyration process in unit MSm3/day
     flowrateTEG : float
         the flow rate of lean TEG to the dehdyration process in unit kg/hr
-
-    Methods
-    -------
-    getProcess():
-        get the process simulation object
     """
     feedGasFlowRate: float = Field(
         11.65, ge=0.0, le=100.0, title="Feed gas flow rate (not saturated) [MSm3/day]")
@@ -34,14 +32,26 @@ class ProcessInput():
 
 @dataclass
 class ProcessOutput():
-    """Output validation model"""
+    """
+    A class to define output results from a TEG dehydration process simulation.
+
+    ...
+
+    Attributes
+    ----------
+    waterInDryGasppm : float
+        the water content of the dehdyrated gas in ppm (vol)
+    waterInWetGasppm : float
+        the water content of the saturated feed gas in ppm (vol)
+    """
     waterInDryGasppm: float | None = None
     waterInWetGasppm: float | None = None
+
 
 @cache
 def getprocess():
     """
-    create TEG process simulation object
+    The method creates a TEG process simulation object using neqsim
     """
     feedGas = jNeqSim.thermo.system.SystemSrkCPAstatoil(
         273.15 + 42.0, 10.00)
@@ -109,6 +119,7 @@ def getprocess():
     process.add(richTEG)
     return process
 
+
 def updateinput(process, locinput):
     """
     update process with input parameters
@@ -118,6 +129,7 @@ def updateinput(process, locinput):
     process.getUnit('lean TEG to absorber').setFlowRate(
         locinput.leanTEGFlowRate, 'kg/hr')
 
+
 def getoutput():
     # update output
     outputparam = {
@@ -126,8 +138,9 @@ def getoutput():
     }
     return outputparam
 
+
 if __name__ == "__main__":
-    # Test of running the class
+    # Test running the TEG process
 
     # Read input
     inputparam = {
@@ -138,7 +151,7 @@ if __name__ == "__main__":
     # Create TEG process
     tegprocess = getprocess()
 
-    #update input in model
+    # update input in model
     updateinput(process=tegprocess, locinput=ProcessInput(**inputparam))
 
     # run calculation
@@ -150,9 +163,7 @@ if __name__ == "__main__":
         raise Exception(
             f"The Martin Linge TEG dehydartion calculation did not converge within 5 minutes"
         )
-    
-    #read results
-    results = ProcessOutput(**getoutput())
 
+    # read and print results
+    results = ProcessOutput(**getoutput())
     print(results.__dict__)
-    print(results.waterInDryGasppm)

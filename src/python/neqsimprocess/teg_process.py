@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from neqsim.thermo import fluid
 
 class TEGprocess(BaseModel):
     """
@@ -18,21 +19,16 @@ class TEGprocess(BaseModel):
     getProcess():
         get the process simulation object
     """
-
-    def __init__(self, name, surname, age):
+    #process = fluid('srk')
+    
+    def __init__(self):
         """
-        Constructs all the necessary attributes for the person object.
-
-        Parameters
-        ----------
-            name : str
-                first name of the person
-            surname : str
-                family name of the person
-            age : int
-                age of the person
+        Constructs all the necessary attributes for the TEGprocess object.
         """
 
-        self.name = name
-        self.surname = surname
-        self.age = age
+    def getprocess(self):
+        """
+        doc
+        """
+        process = fluid('srk')
+        return process

@@ -13,7 +13,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/equinor/neqsimprocess",
     packages=['neqsimprocess'],
-    package_dir={'neqsimprocess': 'src/python/neqsimprocess/'},
+    package_dir={'neqsimprocess': 'neqsimprocess/'},
     classifiers=[
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",

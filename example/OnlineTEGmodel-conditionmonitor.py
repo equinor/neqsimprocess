@@ -21,23 +21,6 @@ from datetime import datetime
 import numpy
 import sys
 
-#d = tagreader.IMSClient('GFA','Aspen')
-#d.connect() 
-
-#tags = ['GFA.24-FI___329C.PV','GFA.24-TIC__312_.PV','GFA.24-PIT__323A.PV',
-#        'GFA.24-AT___327_.PV','GFA.24-FIT__385_.PV','GFA.24-PIT__393_.PV',
-#        'GFA.24-TIC__388C.PV', 'GFA.24-PIC__402_.PV','GFA.24-PIT__393_.PV',
-#        'GFA.24-TIC__411_.PV','GFA.24-TIC__388C.PV','GFA.24-TIT__384_.PV',
-#        'GFA.24-TIT__396_.PV','GFA.24-PIT__013_.PV','GFA.24-PDIT_367_.PV']                                           #296:temperature in surge drum, 
-
-#timestep = 3600*24.0/4.0
-#dfres = d.read(tags,'15-Jan-20 13:00:00','01-May-21 13:11:00',timestep) 
-#dfres.to_csv('c:/temp/TEGprocessGFAdata.csv')
-
-dfres = pd.read_csv("c:/temp/TEGprocessGFAdatawHX22.csv")
-
-TEGprocess = openprocess('c:/temp/TEGprocessGFA.neqsim')
-
 dataOut = []
 dataRes = []
 for index, data in dfres.iterrows():

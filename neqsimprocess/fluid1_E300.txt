@@ -1,7 +1,3 @@
--- Generated with PVTsim Nova version 6.1.5516.0 at 12/5/2023 2:48:09 PM
--- Fluid: 34/8-13 A   MDT    Res.oil     TS-126805 mud corrected  Weatherford rno.70-00387 
--- Database: \\statoil.net\dfs\common\TPD\TEX\PTEC\RT\REC\PVT\Norway\Visund\Prospects\Visund-areaV4_PVTSin novaV6.nfdb
--- Units
 METRIC
 -- Number of components:
 NCOMPS

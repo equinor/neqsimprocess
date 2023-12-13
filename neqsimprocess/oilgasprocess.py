@@ -8,9 +8,9 @@ from functools import cache
 from neqsim import jNeqSim
 from pydantic.dataclasses import dataclass
 from pydantic import Field
-from neqsim.process import compressor, cooler, separator3phase, getProcess, clearProcess, mixer, heater, stream, pump, separator, runProcess, stream, valve, heatExchanger, recycle2, setpoint, calculator
-from neqsim.thermo import fluid, printFrame
-from neqsim.thermo.thermoTools import readEclipseFluid, TPflash
+from neqsim.process import compressor, cooler, separator3phase, getProcess, clearProcess, mixer, heater, stream, pump, separator, runProcess, stream, valve, recycle2
+from neqsim.thermo import fluid
+from neqsim.thermo.thermoTools import readEclipseFluid
 
 @dataclass
 class ProcessInput():
@@ -100,10 +100,10 @@ def getprocess():
     clearProcess()
 
     wellFluid = readEclipseFluid('/workspaces/neqsimprocess/neqsimprocess/fluid1_E300.txt')
-    #wellFluid.setMolarComposition([0.08, 3.56, 67.36, 8.02, 1.54, 0.2, 0.42, 0.15, 0.2, 1.24, 2.34, 1.33, 1.19, 1.15, 6.69, 5.5, 5.03])
+    #wellFluid.setMolarFlowRates([0.08, 3.56, 67.36, 8.02, 1.54, 0.2, 0.42, 0.15, 0.2, 1.24, 2.34, 1.33, 1.19, 1.15, 6.69, 5.5, 5.03])
  
     LPwellFLuid = wellFluid.clone()
-    #LPwellFLuid.setMolarComposition([0.08, 3.56, 67.36, 8.02, 1.54, 0.2, 0.42, 0.15, 0.2, 1.24, 2.34, 1.33, 1.19, 1.15, 6.69, 5.5, 5.03])
+    #LPwellFLuid.setMolarFlowRates([0.08, 3.56, 67.36, 8.02, 1.54, 0.2, 0.42, 0.15, 0.2, 1.24, 2.34, 1.33, 1.19, 1.15, 6.69, 5.5, 5.03])
  
     wellStreamHP = stream(wellFluid)
     wellStreamHP.setName("HP well stream")
@@ -240,7 +240,6 @@ def getoutput():
     # update output
     outputparam = {
         'mass_balance': oilprocess.getUnit('HP well stream').getFlowRate('kg/hr')+oilprocess.getUnit('LP well stream').getFlowRate('kg/hr')-oilprocess.getUnit('export gas').getFlowRate('kg/hr')-oilprocess.getUnit('export oil').getFlowRate('kg/hr'),
-        'feedGasFlowRateHP': oilprocess.getUnit('HP well stream').getFluid().getComponent(0).getx()*1e6,
         'recompressor1_power': oilprocess.getUnit('1st stage compressor').getPower()/1e3,
         'recompressor2_power': oilprocess.getUnit('2nd stage compressor').getPower()/1e3,
         'recompressor3_power': oilprocess.getUnit('3rd stage compressor').getPower()/1e3,

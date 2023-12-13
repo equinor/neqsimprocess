@@ -1,7 +1,7 @@
 """
 Oil process module
 ...
-The module is sed for establishing a Oil process, 
+The module is used for establishing an Oil process, 
 setting input parameters and reading output from a simulation
 """
 from functools import cache

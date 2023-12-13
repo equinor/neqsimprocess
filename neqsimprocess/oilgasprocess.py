@@ -8,29 +8,54 @@ from functools import cache
 from neqsim import jNeqSim
 from pydantic.dataclasses import dataclass
 from pydantic import Field
-from neqsim.process import compressor, cooler, separator3phase, getProcess, clearProcess, mixer, heater, stream, pump, separator, runProcess, stream, saturator, valve, filters, heatExchanger, simpleTEGAbsorber,distillationColumn, waterStripperColumn, recycle2, setpoint, calculator
+from neqsim.process import compressor, cooler, separator3phase, getProcess, clearProcess, mixer, heater, stream, pump, separator, runProcess, stream, valve, heatExchanger, recycle2, setpoint, calculator
 from neqsim.thermo import fluid, printFrame
 from neqsim.thermo.thermoTools import readEclipseFluid, TPflash
 
 @dataclass
 class ProcessInput():
     """
-    A class to define input parameters for the TEG dehydration process.
+    A class to define input parameters for the oil process.
 
     ...
 
     Attributes
     ----------
-    feedGasFlowRate : float
-        the flow rate of the feed gas to the dehdyration process in unit MSm3/day
-    flowrateTEG : float
-        the flow rate of lean TEG to the dehdyration process in unit kg/hr
+    feedGasFlowRateHP : float
+        HP wells flow rate in unit MSm3/day
+    feedGasFlowRateLP : float
+        LP wells flow rate in unit MSm3/day
     """
     feedGasFlowRateHP: float = Field(
-        11.65, ge=0.0, le=100.0, title="HP Feed gas flow rate (not saturated) [MSm3/day]")
+        10.0, ge=0.0, le=100.0, title="HP Feed gas flow rate (not saturated) [MSm3/day]")
     feedGasFlowRateLP: float = Field(
-        5.65, ge=0.0, le=100.0, title="LP Feed gas flow rate (not saturated) [MSm3/day]")
-
+        5.6, ge=0.0, le=100.0, title="LP Feed gas flow rate (not saturated) [MSm3/day]")
+    firstStagePressure: float = Field(
+        60.0, ge=0.0, le=100.0, title="Pressure of first stage separator [bara]")
+    firstStageTemperature: float = Field(
+        70.0, ge=0.0, le=100.0, title="Temperature of first stage separator [C]")
+    secondStagePressure: float = Field(
+        30.0, ge=0.0, le=100.0, title="Second stage separator pressure [bara]")
+    secondStageTemperature: float = Field(
+        80.0, ge=0.0, le=100.0, title="Second stage separator temperature [C]")
+    thirdStagePressure: float = Field(
+        1.8, ge=0.0, le=100.0, title="Third stage separator pressure [bara]")
+    thirdStageTemperature: float = Field(
+        64.0, ge=0.0, le=100.0, title="Third stage separator temperature [C]")
+    export_oil_temperature: float = Field(
+        55.0, ge=0.0, le=100.0, title="export oil temperature [C]")
+    export_oil_pressure: float = Field(
+        8.8, ge=0.0, le=100.0, title="export oil pressure [bara]")
+    firstStageRecompressorPressure: float = Field(
+        6.5, ge=0.0, le=100.0, title="First stage recompression pressure [bara]")
+    dew_point_scrubber_temperature: float = Field(
+        30.0, ge=0.0, le=100.0, title="Dew point scrubber temperature [C]")
+    export_gas_pressure: float = Field(
+        130.0, ge=0.0, le=200.0, title="Export gas pressure [bara]")
+    export_gas_temperature: float = Field(
+        55.0, ge=0.0, le=100.0, title="Export gas temperature [C]")
+    suctionCoolerTemperature: float = Field(
+        30.0, ge=0.0, le=100.0, title="Compressor after cooler temperatures [C]")
 
 @dataclass
 class ProcessOutput():
@@ -41,10 +66,30 @@ class ProcessOutput():
 
     Attributes
     ----------
-    feedGasFlowRateHP : float
-        the flow rate of well stream to process (MSm3/day)
+    mass_balance _ float
+        check of mass balance for simulation
+    recompressor1_power : float
+        power of first stage compressor (kW)
+    recompressor2_power : float
+        power of second stage compressor (kW)
+    recompressor3_power : float
+        power of third stage compressor (kW)
+    exportcompressor_power : float
+        power of export compressor (kW)
+    gasexportflow : float
+        gasexportflow (MSm3/day)
+    oilexportflow : float
+        oilexportflow (m3/hr)
     """
-    feedGasFlowRateHP: float | None = None
+    mass_balance: float | None = None
+    recompressor1_power: float | None = None
+    recompressor2_power: float | None = None
+    recompressor3_power: float | None = None
+    exportcompressor_power: float | None = None
+    gasexportflow: float | None = None
+    oilexportflow: float | None = None
+    
+
 
 
 @cache
@@ -52,28 +97,6 @@ def getprocess():
     """
     The method creates a oil process object using neqsim
     """
-    inputdata = {
-        'feedFlowRateHP': 10,
-        'feedFlowRateLP': 3,
-        'firstStagePressure': 60.0,
-        'firstStageTemperature': 70.0,
-        'secondStagePressure': 30.0,
-        'secondStageTemperature': 80.0,
-        'thirdStagePressure': 1.8,
-        'thirdStageTemperature': 64.0,
-        'export_oil_temperature': 55.0,
-        'export_oil_pressure': 8.8,
-        'firstStageRecompressorPressure': 6.5,
-
-        'temperatureOilHeater' : 75.9,
-        'secondStagePressure': 8.6,
-        'thirdStagePressure': 1.9,
-        'firstStageSuctionCoolerTemperature': 30.0, 
-        'secondStageSuctionCoolerTemperature': 30.0, 
-        'thirdStageSuctionCoolerTemperature':30.0,
-        'firstStageExportCoolerTemperature': 30.0, 
-        'secondStageExportCoolerTemperature': 30.0
-    }
     clearProcess()
 
     wellFluid = readEclipseFluid('/workspaces/neqsimprocess/neqsimprocess/fluid1_E300.txt')
@@ -85,31 +108,31 @@ def getprocess():
     wellStreamHP = stream(wellFluid)
     wellStreamHP.setName("HP well stream")
     wellStreamHP.setFlowRate(ProcessInput.feedGasFlowRateHP, "MSm3/day")
-    wellStreamHP.setTemperature(inputdata['firstStageTemperature'], "C")
-    wellStreamHP.setPressure(inputdata['firstStagePressure'], "bara")
+    wellStreamHP.setTemperature(ProcessInput.firstStageTemperature, "C")
+    wellStreamHP.setPressure(ProcessInput.firstStagePressure, "bara")
 
-    LPwellStream = stream(wellFluid)
+    LPwellStream = stream(LPwellFLuid)
     LPwellStream.setName("LP well stream")
     LPwellStream.setFlowRate(ProcessInput.feedGasFlowRateLP, "MSm3/day")
-    LPwellStream.setTemperature(inputdata['secondStageTemperature'], "C")
-    LPwellStream.setPressure(inputdata['secondStagePressure'], "bara")
+    LPwellStream.setTemperature(ProcessInput.secondStageTemperature, "C")
+    LPwellStream.setPressure(ProcessInput.secondStagePressure, "bara")
 
     firstStageSeparator = separator3phase(wellStreamHP)
     firstStageSeparator.setName("1st stage separator")
 
     oilHeaterFromFirstStage = heater(firstStageSeparator.getOilOutStream())
     oilHeaterFromFirstStage.setName("oil heater second stage")
-    oilHeaterFromFirstStage.setOutTemperature(inputdata['secondStageTemperature'],'C')
-    oilHeaterFromFirstStage.setOutPressure(inputdata['secondStagePressure'],'bara')
+    oilHeaterFromFirstStage.setOutTemperature(ProcessInput.secondStageTemperature,'C')
+    oilHeaterFromFirstStage.setOutPressure(ProcessInput.secondStagePressure,'bara')
 
     secondStageSeparator = separator3phase(oilHeaterFromFirstStage.getOutStream())
     secondStageSeparator.addStream(LPwellStream)
     secondStageSeparator.setName("2nd stage separator")
 
-    oilHeaterFromSecondStage = heater(firstStageSeparator.getOilOutStream())
+    oilHeaterFromSecondStage = heater(secondStageSeparator.getOilOutStream())
     oilHeaterFromSecondStage.setName("oil heater third stage")
-    oilHeaterFromSecondStage.setOutTemperature(inputdata['thirdStageTemperature'],'C')
-    oilHeaterFromSecondStage.setOutPressure(inputdata['thirdStagePressure'],'bara')
+    oilHeaterFromSecondStage.setOutTemperature(ProcessInput.thirdStageTemperature,'C')
+    oilHeaterFromSecondStage.setOutPressure(ProcessInput.thirdStagePressure,'bara')
 
     thirdStageSeparator = separator3phase(oilHeaterFromSecondStage.getOutStream())
     thirdStageSeparator.setName("3rd stage separator")
@@ -120,32 +143,35 @@ def getprocess():
     thirdStageSeparator.addStream(oilThirdStageToSep)
 
     exportoil = heater(thirdStageSeparator.getOilOutStream())
-    exportoil.setName("export oil")
-    exportoil.setOutTemperature(inputdata['export_oil_temperature'],'C')
-    exportoil.setOutPressure(inputdata['export_oil_pressure'],'bara')
+    exportoil.setName("export cooler")
+    exportoil.setOutTemperature(ProcessInput.export_oil_temperature,'C')
+    exportoil.setOutPressure(ProcessInput.export_oil_pressure,'bara')
+
+    exportoilstream = stream(exportoil.getOutStream())
+    exportoilstream.setName('export oil')
 
     firstStageCooler = cooler(thirdStageSeparator.getGasOutStream())
     firstStageCooler.setName("1st stage cooler")
-    firstStageCooler.setOutTemperature(inputdata['firstStageSuctionCoolerTemperature'],'C')
+    firstStageCooler.setOutTemperature(ProcessInput.suctionCoolerTemperature,'C')
 
     firstStageScrubber = separator(firstStageCooler.getOutStream())
     firstStageScrubber.setName("1st stage scrubber")
 
     firstStageCompressor = compressor(firstStageScrubber.getGasOutStream())
     firstStageCompressor.setName("1st stage compressor")
-    firstStageCompressor.setOutletPressure(inputdata['firstStageRecompressorPressure'])
+    firstStageCompressor.setOutletPressure(ProcessInput.firstStageRecompressorPressure)
     firstStageCompressor.setIsentropicEfficiency(0.75)
 
     firstStageCooler2 = cooler(firstStageCompressor.getOutStream())
     firstStageCooler2.setName("1st stage cooler2")
-    firstStageCooler2.setOutTemperature(inputdata['firstStageSuctionCoolerTemperature'],'C')
+    firstStageCooler2.setOutTemperature(ProcessInput.suctionCoolerTemperature,'C')
 
     firstStageScrubber2 = separator(firstStageCooler2.getOutStream())
     firstStageScrubber2.setName("1st stage scrubber2")
 
     firstStageCompressor2 = compressor(firstStageScrubber2.getGasOutStream())
-    firstStageCompressor2.setName("1st stage compressor2")
-    firstStageCompressor2.setOutletPressure(inputdata['secondStagePressure'])
+    firstStageCompressor2.setName("2nd stage compressor")
+    firstStageCompressor2.setOutletPressure(ProcessInput.secondStagePressure)
     firstStageCompressor2.setIsentropicEfficiency(0.75)
 
     secondstagegasmixer = mixer("second Stage mixer")
@@ -154,14 +180,14 @@ def getprocess():
 
     secondStageCooler = cooler(secondstagegasmixer.getOutStream())
     secondStageCooler.setName("2nd stage cooler")
-    secondStageCooler.setOutTemperature(inputdata['secondStageSuctionCoolerTemperature'],'C')
+    secondStageCooler.setOutTemperature(ProcessInput.suctionCoolerTemperature,'C')
 
     secondStageScrubber = separator(secondStageCooler.getOutStream())
     secondStageScrubber.setName("2nd stage scrubber")
 
     secondStageCompressor = compressor(secondStageScrubber.getGasOutStream())
-    secondStageCompressor.setName("2nd stage compressor")
-    secondStageCompressor.setOutletPressure(inputdata['firstStagePressure'])
+    secondStageCompressor.setName("3rd stage compressor")
+    secondStageCompressor.setOutletPressure(ProcessInput.firstStagePressure)
     secondStageCompressor.setIsentropicEfficiency(0.75)
 
     richGasMixer = mixer("fourth Stage mixer")
@@ -170,7 +196,7 @@ def getprocess():
 
     dewPointControlCooler = cooler(richGasMixer.getOutStream())
     dewPointControlCooler.setName("dew point cooler")
-    dewPointControlCooler.setOutTemperature(inputdata['thirdStageSuctionCoolerTemperature'],'C')
+    dewPointControlCooler.setOutTemperature(ProcessInput.dew_point_scrubber_temperature,'C')
 
     dewPointScrubber = separator(dewPointControlCooler.getOutStream())
     dewPointScrubber.setName("dew point scrubber")
@@ -184,26 +210,18 @@ def getprocess():
     lpResycle = recycle2("LP liq resycle")
     lpResycle.addStream(lpLiqmixer.getOutStream())
     lpResycle.setOutletStream(oilThirdStageToSep)
+    lpResycle.setTolerance(1e-6)
 
     exportCompressor1 = compressor(dewPointScrubber.getGasOutStream())
-    exportCompressor1.setName("export 1st stage")
-    exportCompressor1.setOutletPressure(140.0)
+    exportCompressor1.setName("export gas compressor")
+    exportCompressor1.setOutletPressure(ProcessInput.export_gas_pressure, 'bara')
     exportCompressor1.setIsentropicEfficiency(0.75)
 
-    exportInterstageCooler = cooler(exportCompressor1.getOutStream())
-    exportInterstageCooler.setName("interstage stage cooler")
-    exportInterstageCooler.setOutTemperature(inputdata['firstStageExportCoolerTemperature'],'C')
+    exportGasCooler = cooler(exportCompressor1.getOutStream())
+    exportGasCooler.setName("export gas cooler")
+    exportGasCooler.setOutTemperature(ProcessInput.export_gas_temperature,'C')
 
-    exportCompressor2= compressor(exportInterstageCooler.getOutStream())
-    exportCompressor2.setName("export 2nd stage")
-    exportCompressor2.setOutletPressure(200.0)
-    exportCompressor2.setIsentropicEfficiency(0.75)
-
-    exportCooler = cooler(exportCompressor1.getOutStream())
-    exportCooler.setName("export cooler")
-    exportCooler.setOutTemperature(inputdata['secondStageExportCoolerTemperature'],'C')
-
-    exportGas = stream(exportCooler.getOutStream())
+    exportGas = stream(exportGasCooler.getOutStream())
     exportGas.setName("export gas")
 
     oilprocess = getProcess()
@@ -221,7 +239,14 @@ def updateinput(process, locinput):
 def getoutput():
     # update output
     outputparam = {
+        'mass_balance': oilprocess.getUnit('HP well stream').getFlowRate('kg/hr')+oilprocess.getUnit('LP well stream').getFlowRate('kg/hr')-oilprocess.getUnit('export gas').getFlowRate('kg/hr')-oilprocess.getUnit('export oil').getFlowRate('kg/hr'),
         'feedGasFlowRateHP': oilprocess.getUnit('HP well stream').getFluid().getComponent(0).getx()*1e6,
+        'recompressor1_power': oilprocess.getUnit('1st stage compressor').getPower()/1e3,
+        'recompressor2_power': oilprocess.getUnit('2nd stage compressor').getPower()/1e3,
+        'recompressor3_power': oilprocess.getUnit('3rd stage compressor').getPower()/1e3,
+        'exportcompressor_power': oilprocess.getUnit('export gas compressor').getPower()/1e3,
+        'oilexportflow':oilprocess.getUnit('export oil').getFlowRate('m3/hr'),
+        'gasexportflow':oilprocess.getUnit('export gas').getFlowRate('MSm3/day'),
     }
     return outputparam
 
@@ -231,18 +256,32 @@ if __name__ == "__main__":
 
     # Read input
     inputparam = {
-        'feedGasFlowRateHP': 11.65
+        'feedGasFlowRateHP': 11.65,
+        'feedGasFlowRateLP': 5.65,
+        'firstStagePressure': 60.0,
+        'firstStageTemperature': 70.0,
+        'secondStagePressure': 30.0,
+        'secondStageTemperature': 80.0,
+        'thirdStagePressure': 1.8,
+        'thirdStageTemperature': 64.0,
+        'export_oil_temperature': 55.0,
+        'export_oil_pressure': 8.8,
+        'firstStageRecompressorPressure': 6.5,
+        'dew_point_scrubber_temperature': 30.0,
+        'export_gas_pressure': 130.0,
+        'export_gas_temperature': 55.0,
+        'suctionCoolerTemperature': 30.0
     }
 
-    # Create TEG process
+    # Create oil process
     oilprocess = getprocess()
 
     # update input in model
     updateinput(process=oilprocess, locinput=ProcessInput(**inputparam))
 
-    # run calculation
+    # run calculation for aximum 60 sec
     thread = oilprocess.runAsThread()
-    thread.join(5*60*1000)
+    thread.join(60*1000)
 
     if thread.isAlive():
         thread.stop()

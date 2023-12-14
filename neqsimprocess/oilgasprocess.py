@@ -143,7 +143,7 @@ def getprocess():
     thirdStageSeparator.addStream(oilThirdStageToSep)
 
     exportoil = heater(thirdStageSeparator.getOilOutStream())
-    exportoil.setName("export cooler")
+    exportoil.setName("export oil cooler")
     exportoil.setOutTemperature(ProcessInput.export_oil_temperature,'C')
     exportoil.setOutPressure(ProcessInput.export_oil_pressure,'bara')
 
@@ -232,8 +232,29 @@ def updateinput(process, locinput):
     """
     update process with input parameters
     """
-    process.getUnit('HP well stream').setFlowRate(
-        locinput.feedGasFlowRateHP, 'MSm3/day')
+    process.getUnit('HP well stream').setFlowRate(locinput.feedGasFlowRateHP, 'MSm3/day')
+    process.getUnit('HP well stream').setTemperature(locinput.firstStageTemperature, "C")
+    process.getUnit('HP well stream').setPressure(locinput.firstStagePressure, "bara")
+    process.getUnit('LP well stream').setFlowRate(ProcessInput.feedGasFlowRateLP, "MSm3/day")
+    process.getUnit('LP well stream').setTemperature(ProcessInput.secondStageTemperature, "C")
+    process.getUnit('LP well stream').setPressure(ProcessInput.secondStagePressure, "bara")
+    process.getUnit('oil heater second stage').setOutTemperature(ProcessInput.secondStageTemperature,'C')
+    process.getUnit('oil heater second stage').setOutPressure(ProcessInput.secondStagePressure,'bara')
+    process.getUnit('oil heater third stage').setOutTemperature(ProcessInput.thirdStageTemperature,'C')
+    process.getUnit('oil heater third stage').setOutPressure(ProcessInput.thirdStagePressure,'bara')
+    process.getUnit('export oil cooler').setOutTemperature(ProcessInput.export_oil_temperature,'C')
+    process.getUnit('export oil cooler').setOutPressure(ProcessInput.export_oil_pressure,'bara')
+    process.getUnit('1st stage cooler').setOutTemperature(ProcessInput.suctionCoolerTemperature,'C')
+    process.getUnit('1st stage compressor').setOutletPressure(ProcessInput.firstStageRecompressorPressure)
+    process.getUnit('1st stage cooler2')
+    process.getUnit('1st stage cooler2').setOutTemperature(ProcessInput.suctionCoolerTemperature,'C')
+    process.getUnit('2nd stage compressor').setOutletPressure(ProcessInput.secondStagePressure)
+    process.getUnit('2nd stage cooler').setOutTemperature(ProcessInput.suctionCoolerTemperature,'C')
+    process.getUnit('3rd stage compressor').setOutletPressure(ProcessInput.firstStagePressure)
+    process.getUnit('dew point cooler').setOutTemperature(ProcessInput.dew_point_scrubber_temperature,'C')
+    process.getUnit('export gas compressor').setOutletPressure(ProcessInput.export_gas_pressure, 'bara')
+    process.getUnit('export gas cooler').setOutTemperature(ProcessInput.export_gas_temperature,'C')
+
 
 
 def getoutput():

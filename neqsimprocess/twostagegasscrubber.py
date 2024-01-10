@@ -1,7 +1,7 @@
 """
-TEG process module
+Two stage hydrocarbon dew point process
 ...
-The module is sed for establishing a TEG process, 
+The module is used for simulation of a two stage dew point scrubber process and 
 setting input parameters and reading output from a simulation
 """
 from functools import cache
@@ -13,45 +13,53 @@ from pydantic import Field
 @dataclass
 class ProcessInput():
     """
-    A class to define input parameters for the TEG dehydration process.
+    A class to define input for a simulation of a two stage scruber hydrocarbon dew point process
 
     ...
 
     Attributes
     ----------
-    feedGasFlowRate : float
-        the flow rate of the feed gas to the dehdyration process in unit MSm3/day
-    flowrateTEG : float
-        the flow rate of lean TEG to the dehdyration process in unit kg/hr
+    pressure_scrubber1 : float
+        the operating pressure of scrubber 1 
+    temperature_scrubber1 : float
+        the operating temperature of scrubber 1 
+    pressure_scrubber2 : float
+        the operating pressure of scrubber 2 
+    temperature_scrubber2 : float
+        the operating temperature of scrubber 2 
     """
-    feedGasFlowRate: float = Field(
-        11.65, ge=0.0, le=100.0, title="Feed gas flow rate (not saturated) [MSm3/day]")
-    leanTEGFlowRate: float = Field(
-        5500.0, ge=0.0, le=100000.0, title="Lean TEG Flow Rate [kg/hr]",)
+    pressure_scrubber1: float = Field(
+        50.0, ge=10.0, le=150.0, title="the operating pressure of scrubber 1 (bara)")
+    temperature_scrubber1: float = Field(
+        25.0, ge=0.0, le=200.0, title="The operating temperature of scrubber 1 [C]")
+    pressure_scrubber2: float = Field(
+        70.0, ge=10.0, le=150.0, title="the operating pressure of scrubber 2 (bara)")
+    temperature_scrubber2: float = Field(
+        12.0, ge=0.0, le=200.0, title="The operating temperature of scrubber 2 [C]")
 
 
 @dataclass
 class ProcessOutput():
     """
-    A class to define output results from a TEG dehydration process simulation.
+    A class to define output results from a simulation of a two stage scruber hydrocarbon dew point process
 
     ...
 
     Attributes
     ----------
-    waterInDryGasppm : float
-        the water content of the dehdyrated gas in ppm (vol)
-    waterInWetGasppm : float
-        the water content of the saturated feed gas in ppm (vol)
+    cricondenbar : float
+        the cricondebar of the gas (bara)
+    dewpointpressure_0C : float
+        the dew point pressure at 0C (bara)
     """
-    waterInDryGasppm: float | None = None
-    waterInWetGasppm: float | None = None
+    cricondenbar: float | None = None
+    dewpointpressure_0C: float | None = None
 
 
 @cache
 def getprocess():
     """
-    The method creates a TEG process simulation object using neqsim
+    The method creates a two stage hydrocarbon dew point process
     """
     feedGas = jNeqSim.thermo.system.SystemSrkEos(
         273.15 + 42.0, 10.00)
@@ -70,24 +78,23 @@ def getprocess():
     feedGas.setMultiPhaseCheck(True)
 
     feedGas = jNeqSim.processSimulation.processEquipment.stream.Stream(
-        "dry feed gas", feedGas)
-    feedGas.setFlowRate(ProcessInput.feedGasFlowRate, "MSm3/day")
+        "feed gas", feedGas)
+    feedGas.setFlowRate(1.0, "MSm3/day")
     feedGas.setTemperature(25.0, "C")
-    feedGas.setPressure(55.0, "bara")
+    feedGas.setPressure(50.0, "bara")
 
     feedseparator = jNeqSim.processSimulation.processEquipment.separator.Separator(
-        "feed gas", feedGas)
+        "separator 1", feedGas)
     
-    cooler1 = jNeqSim.processSimulation.processEquipment.heatExchanger(feedseparator.getGasOutStream())
-    cooler1.setOutPressure(75.0, 'bara')
-    cooler1.setOutTemperature(13.0, 'C')
+    cooler1 = jNeqSim.processSimulation.processEquipment.heatExchanger.Heater("cooler", feedseparator.getGasOutStream())
+    cooler1.setOutPressure(70.0, 'bara')
+    cooler1.setOutTemperature(12.0, 'C')
 
     dewpointscrubber = jNeqSim.processSimulation.processEquipment.separator.ThreePhaseSeparator(
         "dew point scrubber", cooler1.getOutStream())
     dewpointscrubber.setEntrainment(0.5, "volume", "feed", "oil","gas")
 
-    #calculate dew point pressure of gas from scrubber
-    
+
     process = jNeqSim.processSimulation.processSystem.ProcessSystem()
     process.add(feedGas)
     process.add(feedseparator)
@@ -100,44 +107,51 @@ def updateinput(process, locinput):
     """
     update process with input parameters
     """
-    process.getUnit('dry feed gas').setFlowRate(
-        locinput.feedGasFlowRate, 'MSm3/day')
-    process.getUnit('lean TEG to absorber').setFlowRate(
-        locinput.leanTEGFlowRate, 'kg/hr')
+    process.getUnit('feed gas').setTemperature(
+        locinput.temperature_scrubber1, 'C')
+    process.getUnit('feed gas').setPressure(
+        locinput.pressure_scrubber1, 'bara')
+
+    process.getUnit('cooler').setOutTemperature(
+        locinput.temperature_scrubber2, 'C')
+    process.getUnit('cooler').setOutPressure(
+        locinput.pressure_scrubber2, 'bara')
 
 
 def getoutput():
     # update output
     outputparam = {
-        'waterInDryGasppm': tegprocess.getUnit('dry gas from absorber').getFluid().getComponent('water').getx()*1e6,
-        'waterInWetGasppm': tegprocess.getUnit('water saturated feed gas').getFluid().getComponent('water').getx()*1e6
+        'cricondenbar': hcprocess.getUnit('dew point scrubber').getGasOutStream().CCB("bara"),
+        'dewpointpressure_0C': hcprocess.getUnit('dew point scrubber').getGasOutStream().CCB("bara")
     }
     return outputparam
 
 
 if __name__ == "__main__":
-    # Test running the TEG process
+    # Test running the HC dew point process
 
     # Read input
     inputparam = {
-        'feedGasFlowRate': 11.65,
-        'leanTEGFlowRate': 5500.0
+        'temperature_scrubber1': 25.0,
+        'pressure_scrubber1': 50.0, 
+        'temperature_scrubber2': 12.0,
+        'pressure_scrubber2': 70.0, 
     }
 
-    # Create TEG process
-    tegprocess = getprocess()
+    # Create dew point process
+    hcprocess = getprocess()
 
     # update input in model
-    updateinput(process=tegprocess, locinput=ProcessInput(**inputparam))
+    updateinput(process=hcprocess, locinput=ProcessInput(**inputparam))
 
     # run calculation
-    thread = tegprocess.runAsThread()
-    thread.join(5*60*1000)
+    thread = hcprocess.runAsThread()
+    thread.join(1*60*1000)
 
     if thread.isAlive():
         thread.stop()
         raise Exception(
-            f"The Martin Linge TEG dehydartion calculation did not converge within 5 minutes"
+            f"The model did not converge within 1 minutes"
         )
 
     # read and print results

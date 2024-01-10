@@ -77,7 +77,7 @@ def getprocess():
     feedGas.addComponent("n-pentane", 0.19)
     feedGas.addComponent("n-hexane", 0.28)
     feedGas.addComponent("n-heptane", 0.28)
-    feedGas.setMixingRule(10)
+    feedGas.setMixingRule(2)
     feedGas.setMultiPhaseCheck(True)
 
     feedGas = jNeqSim.processSimulation.processEquipment.stream.Stream(

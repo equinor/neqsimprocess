@@ -36,6 +36,8 @@ class ProcessInput():
         70.0, ge=10.0, le=150.0, title="the operating pressure of scrubber 2 (bara)")
     temperature_scrubber2: float = Field(
         12.0, ge=0.0, le=200.0, title="The operating temperature of scrubber 2 [C]")
+    liquid_entrainment_fraction_scrubber2: float = Field(
+        12.0, ge=0.0, le=1.0, title="The fraction of liquid entering scrubber 2 that will follow the gas from the scrubber [-]")
 
 
 @dataclass
@@ -54,6 +56,7 @@ class ProcessOutput():
     """
     cricondenbar: float | None = None
     dewpointpressure_0C: float | None = None
+    c6_pluss : float | None = None
 
 
 @cache
@@ -116,13 +119,31 @@ def updateinput(process, locinput):
         locinput.temperature_scrubber2, 'C')
     process.getUnit('cooler').setOutPressure(
         locinput.pressure_scrubber2, 'bara')
+    
+    process.getUnit('dew point scrubber').setEntrainment(locinput.liquid_entrainment_fraction_scrubber2, "volume", "feed", "oil","gas")
 
 
 def getoutput():
     # update output
+
+    #Calculate cricondebar
+    ccb = hcprocess.getUnit('dew point scrubber').getGasOutStream().CCB("bara")
+
+    #Calculate dew point pressure
+    fluid = hcprocess.getUnit('dew point scrubber').getGasOutStream().getFluid()
+    fluid.setTemperature(0.0, "C")
+    fluid.setPressure(20.0, "bara")
+    cvd_sim = jNeqSim.PVTsimulation.simulation.SaturationPressure(fluid)
+    cvd_sim.run()
+    dewppres = float(cvd_sim.getSaturationPressure())
+
+    #C6 pluss estimation
+    c6_pluss = fluid.getComponent('n-hexane').getz() + fluid.getComponent('n-heptane').getz()
+
     outputparam = {
-        'cricondenbar': hcprocess.getUnit('dew point scrubber').getGasOutStream().CCB("bara"),
-        'dewpointpressure_0C': hcprocess.getUnit('dew point scrubber').getGasOutStream().CCB("bara")
+        'cricondenbar': ccb,
+        'dewpointpressure_0C': dewppres,
+        'c6_pluss': c6_pluss
     }
     return outputparam
 
@@ -136,6 +157,7 @@ if __name__ == "__main__":
         'pressure_scrubber1': 50.0, 
         'temperature_scrubber2': 12.0,
         'pressure_scrubber2': 70.0, 
+        'liquid_entrainment_fraction_scrubber2': 0.5
     }
 
     # Create dew point process
@@ -151,7 +173,7 @@ if __name__ == "__main__":
     if thread.isAlive():
         thread.stop()
         raise Exception(
-            f"The model did not converge within 1 minutes"
+            f"The model did not converge within 1 minute"
         )
 
     # read and print results
